@@ -1,6 +1,8 @@
 (ns scheme.core
   (:require [clojure.string :as str]))
 
+;; lexing and parsing
+
 (defn tokenize
   [input]
   (-> input
@@ -34,3 +36,26 @@
     (if (= (first tokens) "(")
       (parse-list tokens)
       (parse-atom (first tokens)))))
+
+;; eval
+
+(declare eval-parsed)
+
+(defn- eval-list
+  [lst]
+  (if (= (first lst) "quote")
+    (apply list (second lst))
+    ;; needs envs for defining functions and symbols for vars
+    (let [func @(resolve (symbol (first lst)))]
+      (apply func (map eval-parsed (rest lst))))))
+
+(defn- eval-parsed
+  [ast]
+  (if (vector? ast)
+    (eval-list ast)
+    ;; atoms evaluate to themselves
+    ast))
+
+(defn sch-eval
+  [program]
+  (eval-parsed (parse program)))
