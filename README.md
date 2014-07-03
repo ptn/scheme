@@ -1,14 +1,17 @@
 # scheme
 
-A Clojure library designed to ... well, that part is up to you.
+A Scheme interpreter. Mostly to understand how interpreters and Lisp
+work - don't expect this to be correct or efficient or complete.
 
 ## Usage
 
-FIXME
+`lein repl` and then feed it some Scheme expressions like this:
+
+`(sch-eval "(first (quote (1 2)))")`
 
 ## License
 
-Copyright © 2014 FIXME
+Copyright © 2014 Pablo Torres
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
