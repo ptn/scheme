@@ -19,4 +19,6 @@
   (is (= '(1 2) (sch-eval "(quote (1 2))")))
   (is (= 1 (sch-eval "(first (quote (1 2)))")))
   (is (= (seq [2 3]) (sch-eval "(rest (quote (1 2 3)))")))
-  (is (= 4 (sch-eval "(begin (define x 3) (+ x 1))"))))
+  (is (= 4 (sch-eval "(begin (define x 3) (+ x 1))")))
+  (is (= 2 (sch-eval "((lambda (x) x) 2)")))
+  (is (= 5 (sch-eval "(begin (define y 3) ((lambda (x) (+ x y)) 2))"))))

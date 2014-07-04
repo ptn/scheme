@@ -62,14 +62,35 @@
 
 (declare eval-parsed)
 
+;; add let and with for contexts
 (def builtins {"+" (fn [scope & args] (apply + args))
                "*" (fn [scope & args] (apply * args))
                "first" (fn [scope x] (first x))
                "rest" (fn [scope x] (rest x))})
 
+(defn scope-get
+  [scope k]
+  (if-let [val (get scope k)]
+    val
+    (when-let [parent (:parent scope)]
+      (recur parent k))))
+
 (defn- eval-symbol
   [sym scope]
-  [(get scope sym) scope])
+  [(scope-get scope sym) scope])
+
+(defn- sch-lambda
+  [[params body]]
+  {:args params :body body})
+
+(defn- sch-lambda? [x] (map? x))
+
+(defn- invoke-lambda
+  [func scope params]
+  (let [call-scope (reduce #(assoc %1 (first %2) (second %2))
+                           {:parent scope}
+                           (map (fn [x y] [x y]) (:args func) params))]
+    (eval-parsed (:body func) call-scope)))
 
 (defn- eval-list
   [lst scope]
@@ -82,11 +103,13 @@
                       (eval-parsed form scope'))
                     [nil scope]
                     (rest lst))
+    "lambda" [(sch-lambda (subvec lst 1)) scope]
     ;; function invocation
-    (let [val (apply (first (eval-symbol (first lst) scope))
-                     scope
-                     (map #(first (eval-parsed % scope)) (rest lst)))]
-      [val scope])))
+    (let [func (first (eval-parsed (first lst) scope))
+          params (map #(first (eval-parsed % scope)) (rest lst))]
+      (if (sch-lambda? func)
+        (invoke-lambda func scope params)
+        [(apply func scope params) scope]))))
 
 (defn- eval-parsed
   [ast scope]
