@@ -15,20 +15,26 @@
   (let [repr (read-string tok)]
     (if (number? repr)
       repr
+      ;; add strings
       tok)))
 
 (defn- parse-list
   [tokens]
   (let [tokens (subvec tokens 1 (- (count tokens) 1))]
-    (loop [i 0
-           parsed []]
-      (if (= i (count tokens))
-        parsed
-        (if (= (tokens i) "(")
+    (loop [parse-here 0
+           parsed-items []]
+      (if (= parse-here (count tokens))
+        parsed-items
+        (if (= (tokens parse-here) "(")
+          ;; parse the entire sublist as one element.  set parse-here
+          ;; to past the matching paren, to the beginning of the next
+          ;; item.
           (let [sublist-end (inc (.lastIndexOf tokens ")"))]
-            (recur sublist-end (conj parsed
-                                     (parse-list (subvec tokens i sublist-end)))))
-          (recur (inc i) (conj parsed (parse-atom (tokens i)))))))))
+            (recur sublist-end
+                   (conj parsed-items
+                         (parse-list (subvec tokens parse-here sublist-end)))))
+          (recur (inc parse-here)
+                 (conj parsed-items (parse-atom (tokens parse-here)))))))))
 
 (defn parse
   [input]
