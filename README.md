@@ -7,7 +7,7 @@ work - don't expect this to be correct or efficient or complete.
 
 `lein repl` and then feed it some Scheme expressions like this:
 
-`(sch-eval "(first (quote (1 2)))")`
+`(sch-eval "(car (quote (1 2)))")`
 
 ## License
 

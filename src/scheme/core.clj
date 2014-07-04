@@ -65,8 +65,8 @@
 ;; add let and with for contexts
 (def builtins {"+" (fn [scope & args] (apply + args))
                "*" (fn [scope & args] (apply * args))
-               "first" (fn [scope x] (first x))
-               "rest" (fn [scope x] (rest x))
+               "car" (fn [scope x] (first x))
+               "cdr" (fn [scope x] (rest x))
                "t" true})
 
 (defn scope-get
