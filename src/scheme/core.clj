@@ -15,7 +15,7 @@
   (let [repr (read-string tok)]
     (if (number? repr)
       repr
-      ;; add strings
+      ;; no strings
       tok)))
 
 ;; assume balanced parens for now
@@ -66,14 +66,20 @@
 (def builtins {"+" (fn [scope & args] (apply + args))
                "*" (fn [scope & args] (apply * args))
                "first" (fn [scope x] (first x))
-               "rest" (fn [scope x] (rest x))})
+               "rest" (fn [scope x] (rest x))
+               "t" true})
 
 (defn scope-get
   [scope k]
-  (if-let [val (get scope k)]
-    val
-    (when-let [parent (:parent scope)]
-      (recur parent k))))
+  ;; adding ["f" nil] or ["f" false] to the builtins map confuses
+  ;; the ifs below
+  (if (= "f" k)
+    nil
+    (if-let [val (get scope k)]
+      val
+      (if-let [parent (:parent scope)]
+        (recur parent k)
+        (throw (Exception. (str "Undefined " k)))))))
 
 (defn- eval-symbol
   [sym scope]
@@ -85,6 +91,8 @@
 
 (defn- sch-lambda? [x] (map? x))
 
+;; function invocation is just normal evaluation of expressions under
+;; nested scopes
 (defn- invoke-lambda
   [func scope params]
   (let [call-scope (reduce #(assoc %1 (first %2) (second %2))
@@ -104,6 +112,10 @@
                     [nil scope]
                     (rest lst))
     "lambda" [(sch-lambda (subvec lst 1)) scope]
+    ;; anything that's not f is true, there's also t as the literal truth value
+    "if" (let [[test then else] (rest lst)
+               [test-val scope'] (eval-parsed test scope)]
+           (eval-parsed (if test-val then else) scope'))
     ;; function invocation
     (let [func (first (eval-parsed (first lst) scope))
           params (map #(first (eval-parsed % scope)) (rest lst))]
