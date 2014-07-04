@@ -15,4 +15,4 @@
   (is (= 8 (sch-eval "(+ 2 (* 2 3))")))
   (is (= '(1 2) (sch-eval "(quote (1 2))")))
   (is (= 1 (sch-eval "(first (quote (1 2)))")))
-  (is (= 3 (sch-eval "(last (quote (1 2 3)))"))))
+  (is (= (seq [2 3]) (sch-eval "(rest (quote (1 2 3)))"))))

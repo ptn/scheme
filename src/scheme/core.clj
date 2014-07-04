@@ -47,21 +47,31 @@
 
 (declare eval-parsed)
 
+(def builtins {"+" (fn [& args] (apply + args))
+               "*" (fn [& args] (apply * args))
+               "first" (fn [x] (first x))
+               "rest" (fn [x] (rest x))})
+
+(defn- eval-symbol
+  [sym scope]
+  (get scope sym))
+
 (defn- eval-list
-  [lst]
+  [lst scope]
   (if (= (first lst) "quote")
     (apply list (second lst))
-    ;; needs envs for defining functions and symbols for vars
-    (let [func @(resolve (symbol (first lst)))]
-      (apply func (map eval-parsed (rest lst))))))
+    ;; add special forms later
+    (apply (eval-symbol (first lst) scope)
+           (map #(eval-parsed % scope) (rest lst)))))
 
 (defn- eval-parsed
-  [ast]
-  (if (vector? ast)
-    (eval-list ast)
-    ;; atoms evaluate to themselves
-    ast))
+  [ast scope]
+  (cond
+   (vector? ast) (eval-list ast scope)
+   ;; no string support yet
+   (string? ast) (eval-symbol ast scope)
+   :else ast))
 
 (defn sch-eval
   [program]
-  (eval-parsed (parse program)))
+  (eval-parsed (parse program) builtins))
