@@ -137,8 +137,25 @@
    :else [ast scope]))
 
 (defn sch-eval
-  ([program] (sch-eval program false))
-  ([program print-scope]
-     (let [[val scope] (eval-parsed (parse program) builtins)]
-       (if print-scope (println scope))
-       val)))
+  "Return the value of the expression plus the resulting scope of
+  doing so."
+  ([expr] (sch-eval expr builtins))
+  ([expr scope]
+     (eval-parsed (parse expr) scope)))
+
+(defn sch
+  []
+  (println "Type (q) to exit.")
+  (loop [scope builtins]
+    (print "sch> ")
+    (flush)
+    (let [input (str/trim (read-line))]
+      (when-not (= input "(q)")
+        (let [[val scope'] (try
+                             (sch-eval input scope)
+                             (catch Exception e
+                               (do
+                                 (println (.getMessage e))
+                                 [nil scope])))]
+          (when val (println val))
+          (recur scope'))))))

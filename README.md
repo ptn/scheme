@@ -1,13 +1,13 @@
 # scheme
 
-A Scheme interpreter. Mostly to understand how interpreters and Lisp
-work - don't expect this to be correct or efficient or complete.
+An Scheme interpreter.
 
 ## Usage
 
-`lein repl` and then feed it some Scheme expressions like this:
+Launch a REPL like this:
 
-`(sch-eval "(car (quote (1 2)))")`
+1. `lein repl`
+2. `(sch)`
 
 ## License
 
