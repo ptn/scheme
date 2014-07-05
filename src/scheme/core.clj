@@ -86,10 +86,17 @@
   [(scope-get scope sym) scope])
 
 (defn- sch-lambda
-  [[params body]]
+  [params body]
   {:args params :body body})
 
 (defn- sch-lambda? [x] (map? x))
+
+(defn- eval-begin
+  [scope forms]
+  (reduce (fn [[val scope'] form]
+            (eval-parsed form scope'))
+          [nil scope]
+          forms))
 
 ;; function invocation is just normal evaluation of expressions under
 ;; nested scopes
@@ -98,7 +105,8 @@
   (let [call-scope (reduce #(assoc %1 (first %2) (second %2))
                            {:parent scope}
                            (map (fn [x y] [x y]) (:args func) params))]
-    (eval-parsed (:body func) call-scope)))
+    ;; implicit begin
+    (eval-begin call-scope (:body func))))
 
 (defn- eval-list
   [lst scope]
@@ -107,11 +115,8 @@
     "quote" [(apply list (second lst)) scope]
     "define" (let [[val scope'] (eval-parsed (last lst) scope)]
                 [val (assoc scope' (second lst) val)])
-    "begin" (reduce (fn [[val scope'] form]
-                      (eval-parsed form scope'))
-                    [nil scope]
-                    (rest lst))
-    "lambda" [(sch-lambda (subvec lst 1)) scope]
+    "begin" (eval-begin scope (rest lst))
+    "lambda" [(sch-lambda (second lst) (subvec lst 2)) scope]
     ;; anything that's not f is true, there's also t as the literal truth value
     "if" (let [[test then else] (rest lst)
                [test-val scope'] (eval-parsed test scope)]
